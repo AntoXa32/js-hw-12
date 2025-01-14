@@ -8,6 +8,10 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 const galleryEl = document.querySelector('.gallery');
 const searchFormEl = document.querySelector('.js-search-form');
 const loaderEl = document.querySelector('.loader');
+const buttonEl = document.querySelector('.button');
+
+let searchQuery = '';
+let newCurrentPage = 1;
 
 let lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
@@ -16,7 +20,7 @@ let lightbox = new SimpleLightbox('.gallery a', {
 
 async function onSearchFormSubmit(event) {
   event.preventDefault();
-  const searchQuery = event.target.elements.searchKeywords.value.trim();
+  searchQuery = event.target.elements.searchKeywords.value.trim();
   if (searchQuery === '') {
     galleryEl.innerHTML = '';
     event.target.reset();
@@ -33,7 +37,7 @@ async function onSearchFormSubmit(event) {
   loaderEl.classList.remove('is-hidden');
 
   try {
-    const { data } = await fetchPhotosByQuery(searchQuery);
+    const { data } = await fetchPhotosByQuery(searchQuery, newCurrentPage);
 
     if (data.total === 0) {
       iziToast.show({
@@ -46,6 +50,7 @@ async function onSearchFormSubmit(event) {
       return;
     }
     galleryEl.innerHTML = createGalleryItemMarkup(data.hits);
+    buttonEl.classList.remove('d-none');
 
     lightbox.refresh();
   } catch (error) {
@@ -56,4 +61,22 @@ async function onSearchFormSubmit(event) {
   loaderEl.classList.add('is-hidden');
 }
 
+async function onLoadMoreClick() {
+  newCurrentPage += 1;
+
+  try {
+    const { data } = await fetchPhotosByQuery(searchQuery, newCurrentPage);
+
+    galleryEl.insertAdjacentHTML(
+      'beforeend',
+      createGalleryItemMarkup(data.hits)
+    );
+
+    lightbox.refresh();
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 searchFormEl.addEventListener('submit', onSearchFormSubmit);
+buttonEl.addEventListener('click', onLoadMoreClick);
