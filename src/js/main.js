@@ -4,6 +4,7 @@ import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+import { PER_PAGE } from './pixabay-api.js';
 
 const galleryEl = document.querySelector('.gallery');
 const searchFormEl = document.querySelector('.js-search-form');
@@ -12,6 +13,7 @@ const buttonEl = document.querySelector('.button');
 
 let searchQuery = '';
 let newCurrentPage = 1;
+let totalPages = 0;
 
 let lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
@@ -21,6 +23,7 @@ let lightbox = new SimpleLightbox('.gallery a', {
 async function onSearchFormSubmit(event) {
   event.preventDefault();
   searchQuery = event.target.elements.searchKeywords.value.trim();
+  buttonEl.classList.add('d-none');
   if (searchQuery === '') {
     galleryEl.innerHTML = '';
     event.target.reset();
@@ -34,7 +37,7 @@ async function onSearchFormSubmit(event) {
   }
 
   galleryEl.innerHTML = '';
-  loaderEl.classList.remove('is-hidden');
+  // loaderEl.classList.remove('is-hidden');
 
   try {
     const { data } = await fetchPhotosByQuery(searchQuery, newCurrentPage);
@@ -50,7 +53,12 @@ async function onSearchFormSubmit(event) {
       return;
     }
     galleryEl.innerHTML = createGalleryItemMarkup(data.hits);
-    buttonEl.classList.remove('d-none');
+
+    totalPages = Math.ceil(data.totalHits / PER_PAGE);
+
+    if (totalPages > 1) {
+      buttonEl.classList.remove('d-none');
+    }
 
     lightbox.refresh();
   } catch (error) {
@@ -58,12 +66,12 @@ async function onSearchFormSubmit(event) {
   }
 
   event.target.reset();
-  loaderEl.classList.add('is-hidden');
+  // loaderEl.classList.add('is-hidden');
 }
 
 async function onLoadMoreClick() {
   newCurrentPage += 1;
-
+  loaderEl.classList.remove('is-hidden');
   try {
     const { data } = await fetchPhotosByQuery(searchQuery, newCurrentPage);
 
@@ -71,6 +79,13 @@ async function onLoadMoreClick() {
       'beforeend',
       createGalleryItemMarkup(data.hits)
     );
+
+    loaderEl.classList.add('is-hidden');
+
+    if (newCurrentPage > totalPages) {
+      buttonEl.classList.add('d-none');
+      buttonEl.removeEventListener('click', onLoadMoreClick);
+    }
 
     lightbox.refresh();
   } catch (error) {

@@ -12,13 +12,6 @@
   left: 50%;
   transform: translate(-50%, -50%);
 
-  // .gallery & {
-  //   position: fixed;
-  //   top: 50%;
-  //   left: 50%;
-  //   transform: translate(-50%, -50%);
-  // }
-
   &.is-hidden {
     opacity: 0;
     visibility: hidden;

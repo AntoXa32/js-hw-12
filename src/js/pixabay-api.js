@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_KEY = '43780784-35e4285ec8f2021d0fe97b31d';
 const BASE_URL = 'https://pixabay.com/api/';
 axios.defaults.baseURL = BASE_URL;
-const PER_PAGE = 15;
+export const PER_PAGE = 15;
 
 export const fetchPhotosByQuery = async (q = 'photo', newsPage) => {
   const searchParams = {
