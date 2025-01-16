@@ -37,7 +37,7 @@ async function onSearchFormSubmit(event) {
   }
 
   galleryEl.innerHTML = '';
-  // loaderEl.classList.remove('is-hidden');
+  loaderEl.classList.remove('is-hidden');
 
   try {
     const { data } = await fetchPhotosByQuery(searchQuery, newCurrentPage);
@@ -66,8 +66,14 @@ async function onSearchFormSubmit(event) {
   }
 
   event.target.reset();
-  // loaderEl.classList.add('is-hidden');
+  loaderEl.classList.add('is-hidden');
 }
+
+const smothScrollOnLoadMore = () => {
+  const lastElement = galleryEl.querySelector('li.gallery-item:last-child');
+  const newsElementHeight = lastElement.getBoundingClientRect().height;
+  window.scrollBy(0, newsElementHeight * 3);
+};
 
 async function onLoadMoreClick() {
   newCurrentPage += 1;
@@ -81,10 +87,17 @@ async function onLoadMoreClick() {
     );
 
     loaderEl.classList.add('is-hidden');
+    smothScrollOnLoadMore();
 
     if (newCurrentPage > totalPages) {
       buttonEl.classList.add('d-none');
       buttonEl.removeEventListener('click', onLoadMoreClick);
+      iziToast.show({
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+        timeout: 2000,
+        color: 'blue',
+      });
     }
 
     lightbox.refresh();
